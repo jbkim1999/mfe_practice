@@ -1,19 +1,36 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { createMemoryHistory, createBrowserHistory } from "history"; // react-router-dom uses this
 import App from "./App";
 
-const mount = (htmlElem) => {
+const mount = (htmlElem, { onNavigate, defaultHistory }) => {
+    const history = defaultHistory || createMemoryHistory();
+
+    if (onNavigate) {
+        history.listen(onNavigate);
+    }
+
     ReactDOM.render(
-        <App />,
+        <App history={history} />,
         htmlElem
     );
+
+    return {
+        onParentNavigate({ pathname: nextPathname }) {
+            const { pathname } = history.location;
+
+            if (pathname !== nextPathname) {
+                history.push(nextPathname);
+            }
+        }
+    }
 };
 
 if (process.env.NODE_ENV === "development") {
     const dev = document.querySelector("#_marketing-dev");
 
     if (dev) {
-        mount(dev);
+        mount(dev, { defaultHistory: createBrowserHistory() });
     }
 }
 
